@@ -114,3 +114,4 @@
   Autolab/config/autogradeConfig.rb. Use template file provided if file doesn't
   exist.
 - Restart nginx again.
+- Lock www-data account and unset www-data's shell.
