@@ -17,19 +17,19 @@
 
 ## Autolab
 
-- For easy install, keep a sudo user shell and www-data shell running simultaneously.
-- Reset www-data's password and shell for ease now.
-- Create /var/www and set it's owner + group to www-data.
+- For easy install, keep a sudo user shell and `www-data` shell running simultaneously.
+- Reset `www-data`'s password and shell for ease now.
+- Create /var/www and set it's owner + group to `www-data`.
 - Install packages.
 ```bash
-git mysql-server libmysqlclient-dev libsqlite3-dev.
+git mysql-server libmysqlclient-dev libsqlite3-dev
 ```
-- Login as www-data.
+- Login as `www-data`.
 - Clone Autolab source
 ```bash
-git clone https://github.com/autolab/Autolab.
+git clone https://github.com/autolab/Autolab
 ```
-- Install rbenv + ruby-build.
+- Install rbenv + ruby-build
 ```bash
 git clone https://github.com/rbenv/rbenv.git ~/.rbenv
 git clone https://github.com/rbenv/ruby-build.git ~/.rbenv/plugins/ruby-build
@@ -37,33 +37,33 @@ echo 'export PATH="$HOME/.rbenv/bin:$PATH"' >> ~/.bash_profile
 ```
 - From rbenv README,
 	Run `~/.rbenv/bin/rbenv init` for shell-specific instructions on how to
-    initialize rbenv to enable shims and autocompletion.
+    initialize rbenv to enable shims and autocompletion
 - Optionally set `RUBY_BUILD_CACHE_PATH` in `bash_profile` to cache source archives
   downloaded. Useful in case build fails for some reason.
 - Optionally set `TMPDIR` and `RUBY_BUILD_BUILD_PATH` in `bash_profile`. `TMPDIR` used
   for temporary files. `RUBY_BUILD_BUILD_PATH` is build directory and sub-directory of
   `TMPDIR`.
-- Logout and login as www-data.
+- Logout and login as `www-data`.
 - Install ruby build dependencies as sudo user.
 ```bash
-sudo apt-get build-dep ruby2.3.
+sudo apt-get build-dep ruby2.3
 ```
-- Install ruby from Autolab folder as www-data.
+- Install ruby from Autolab folder as `www-data`.
 ```bash
-rbenv install $(cat .ruby-version).
+rbenv install $(cat .ruby-version)
 ```
-- Check if ruby and rake are detected correctly as www-data.
+- Check if ruby and rake are detected correctly as `www-data`.
 ```bash
-which ruby.
-which rake.
+which ruby
+which rake
 ```
-- Install dependencies using bundler from the Autolab directory as www-data.
+- Install dependencies using bundler from the Autolab directory as `www-data`.
 ```bash
 gem install bundler
 rbenv rehash
 bundle install
 ```
-- While bundle installs everything, configure database as www-data. Copy template
+- While bundle installs everything, configure database as `www-data`. Copy template
   config.
 ```bash
 cp config/database.yml.template config/database.yml
@@ -98,13 +98,13 @@ bundle exec rails s -p 3000 -b [server]
 sudo cp /var/www/Autolab/docker/nginx.template.conf /etc/nginx/sites-available/autolab.conf
 ```
 - Modify the following fields: server_name, passenger_user and passenger_ruby. Set
-  passenger_ruby to path returned by `which ruby` when run by www-data(probably
+  passenger_ruby to path returned by `which ruby` when run by `www-data`(probably
   /var/www/.rbenv/shims/ruby). Enable SSL if needed.
 - Symlink autolab.conf file to /etc/nginx/sites-enabled/.
 ```bash
 sudo ln -s /etc/nginx/sites-available/autolab.conf /etc/nginx/sites-enabled/autolab.conf
 ```
-- Run following command from Autolab folder as www-data to collect all static files.
+- Run following command from Autolab folder as `www-data` to collect all static files.
 ```bash
 RAILS_ENV=production rake assets:precompile
 ```
@@ -118,7 +118,7 @@ RAILS_ENV=production rake assets:precompile
 sudo apt-get install python-pip redis-server supervisor
 ```
 - Install docker. See https://docs.docker.com/engine/installation/.
-- Obtain Tango source code as www-data.
+- Obtain Tango source code as `www-data`.
 ```bash
 git clone https://github.com/autolab/Tango.git; cd Tango
 ```
@@ -126,16 +126,16 @@ git clone https://github.com/autolab/Tango.git; cd Tango
 ```bash
 docker build -t autograding_image vmms/
 ```
-- Install Tango requirements in a virtualenv as www-data from Tango source tree.
+- Install Tango requirements in a virtualenv as `www-data` from Tango source tree.
 ```bash
 sudo pip install virtualenv
 virtualenv .
 source bin/activate
 pip install -r requirements.txt
 ```
-- Create Tango config as www-data from template by modifying following PREFIX,
+- Create Tango config as `www-data` from template by modifying following PREFIX,
   COURSELABS, DOCKER_VOLUME_PATH and USE_REDIS.
-- Create the COURSELABS and DOCKER_VOLUME_PATH directories exist as www-data.
+- Create the COURSELABS and DOCKER_VOLUME_PATH directories exist as `www-data`.
 - Copy sections [program:tango] and [program:tangoJobManager] from
   deployment/config/supervisord.conf to /etc/supervisor/conf.d/tango.conf.
 - Modify the path to the Tango directory specified in tango.conf.
@@ -146,16 +146,16 @@ environment=PATH="/var/www/Tango/bin:%(ENV_PATH)s"
 ```
 - Somehow supervisor wasn't added to system startup. Do so using `update-rc.d`.
 ```bash
-sudo update-rc.d supervisor enable.
+sudo update-rc.d supervisor enable
 ```
 - After starting the Tango service using supervisor, navigate to [server]:8610 and
   [server]:8611 to ensure Tango is running correctly.
 - Copy the server and upstream sections deployment/config/nginx.conf to
   /etc/nginx/sites-available/tango.conf. Symlink this file to
   /etc/nginx/sites-enabled/.
-- Restart nginx. Navigate to [server]:8600 to view Tango's message.
+- Restart nginx. Navigate to http://[server]:8600 to view Tango's message.
 - Set RESTFUL_HOST, RESTFUL_PORT and RESTFUL_KEY in
   Autolab/config/autogradeConfig.rb. Use template file provided if file doesn't
   exist.
 - Restart nginx again.
-- Lock www-data account and unset www-data's shell.
+- Lock `www-data` account and unset `www-data`'s shell.
