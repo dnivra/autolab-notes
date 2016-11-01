@@ -22,7 +22,7 @@
 - Create /var/www and set it's owner + group to `www-data`.
 - Install packages.
 ```bash
-git mysql-server libmysqlclient-dev libsqlite3-dev
+sudo apt-get install git mysql-server libmysqlclient-dev libsqlite3-dev
 ```
 - Login as `www-data`.
 - Clone Autolab source
