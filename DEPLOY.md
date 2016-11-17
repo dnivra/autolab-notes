@@ -135,14 +135,29 @@ pip install -r requirements.txt
 ```
 - Create Tango config as `www-data` from template by modifying following PREFIX,
   COURSELABS, DOCKER_VOLUME_PATH and USE_REDIS.
+- Change Tango's restful server(`Tango/restful-server/server.py`) to listen only on
+  localhost if you are running Tango on same machine as Autolab. The Tango processes
+  run with root privileges since they have to interact with Docker daemon and thus,
+  exposing them outside of localhost is a security risk and best avoided if
+  unnecessary. Additionally, nginx acts as a proxy for Tango so there's no need to
+  expose Tango. Change the listen directive in the server file to something like:
+```python
+application.listen(port, address='127.0.0.1', max_buffer_size=Config.MAX_INPUT_FILE_SIZE)
+```
 - Create the COURSELABS and DOCKER_VOLUME_PATH directories exist as `www-data`.
 - Copy sections [program:tango] and [program:tangoJobManager] from
   deployment/config/supervisord.conf to /etc/supervisor/conf.d/tango.conf.
 - Modify the path to the Tango directory specified in tango.conf.
-- Add following line to both sections in tango.conf. This ensures the virtualenv
-  created above is used when running Tango.
+- Change command in both sections to just the `python` commands. This ensures that
+  supervisor will kill the Tango processes before restarting. Otherwise, the old
+  processes are not killed before restarting. Alternatively, use `stopasgroup` and/or
+  `killasgroup` configuration directives of supervisord. I have not tested these.
+- Add following lines to both sections in tango.conf. These ensure that the virtualenv
+  created above is used when running Tango and the processes automatically restart
+  when they exit.
 ```
 environment=PATH="/var/www/Tango/bin:%(ENV_PATH)s"
+autorestart=True
 ```
 - Somehow supervisor wasn't added to system startup. Do so using `update-rc.d`.
 ```bash
@@ -152,7 +167,8 @@ sudo update-rc.d supervisor enable
   [server]:8611 to ensure Tango is running correctly.
 - Copy the server and upstream sections deployment/config/nginx.conf to
   /etc/nginx/sites-available/tango.conf. Symlink this file to
-  /etc/nginx/sites-enabled/.
+  /etc/nginx/sites-enabled/. Change the listen directive to make nginx listen for
+  connections over localhost if running on same machine as Autolab.
 - Restart nginx. Navigate to http://[server]:8600 to view Tango's message.
 - Set RESTFUL_HOST, RESTFUL_PORT and RESTFUL_KEY in
   Autolab/config/autogradeConfig.rb. Use template file provided if file doesn't
