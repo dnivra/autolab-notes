@@ -121,7 +121,7 @@ There are 3 key tasks:
 
 Of these, configuration steps for [sending email when an exception
 occurs](https://github.com/autolab/Autolab/wiki/Deploying-Autolab-with-Docker#72-configure-exception-notifications)
-and [enabling/disabling HTTPS(https://github.com/autolab/Autolab/wiki/Deploying-Autolab-with-Docker#8-https])
+and [enabling/disabling HTTPS](https://github.com/autolab/Autolab/wiki/Deploying-Autolab-with-Docker#8-https)
 are well documented in the Autolab wiki and best read there. Here are steps for
 setting up exim4 as a send-only mail server for sending notifications.
 
