@@ -111,6 +111,32 @@ RAILS_ENV=production rake assets:precompile
 - Restart nginx after above command exits.
 - Navigate to http://[server] to view Autolab running.
 
+## Autolab production configuration setup
+
+There are 3 key tasks:
+
+1. Configuring email sending.
+2. Configuring email sending when an exception occurs.
+3. Enabling/disabling HTTPS.
+
+Of these, configuration steps for [sending email when an exception
+occurs](https://github.com/autolab/Autolab/wiki/Deploying-Autolab-with-Docker#72-configure-exception-notifications)
+and [enabling/disabling HTTPS(https://github.com/autolab/Autolab/wiki/Deploying-Autolab-with-Docker#8-https])
+are well documented in the Autolab wiki and best read there. Here are steps for
+setting up exim4 as a send-only mail server for sending notifications.
+
+- Install and configure exim4 as described in [this
+  guide](https://www.linode.com/docs/email/exim/deploy-exim-as-a-send-only-mail-server-on-ubuntu-12-04).
+- After testing if exim4 is able to send emails correctly, configure an email ID to
+  use as sender email ID in /etc/email-addresses. This will automatically read by
+  exim4 before sending email. Make sure you specify the username as the one Autolab
+  runs as.
+- Configure SMTP details in production.rb as [described
+  here](https://github.com/autolab/Autolab/wiki/Deploying-Autolab-with-Docker#71-configure-email-with-mandrill).
+  Also, set the mailer_send configuration in `Autolab/config/initalizers/devise.rb`.
+- Restart exim4 and nginx. Email notification should be configured and working
+  correctly in Autolab.
+
 ## Tango
 
 - Install pip redis-server supervisor.
