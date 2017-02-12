@@ -100,6 +100,7 @@ sudo cp /var/www/Autolab/docker/nginx.template.conf /etc/nginx/sites-available/a
 - Modify the following fields: server_name, passenger_user and passenger_ruby. Set
   passenger_ruby to path returned by `which ruby` when run by `www-data`(probably
   /var/www/.rbenv/shims/ruby). Enable SSL if needed.
+- Set root field to `/var/www/Autolab/public`.
 - Symlink autolab.conf file to /etc/nginx/sites-enabled/.
 ```bash
 sudo ln -s /etc/nginx/sites-available/autolab.conf /etc/nginx/sites-enabled/autolab.conf
