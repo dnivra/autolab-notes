@@ -162,7 +162,7 @@ pip install -r requirements.txt
 ```
 - Create Tango config as `www-data` from template by modifying following PREFIX,
   COURSELABS, DOCKER_VOLUME_PATH and USE_REDIS.
-- Change Tango's restful server(`Tango/restful-server/server.py`) to listen only on
+- Change Tango's restful server(`Tango/restful-tango/server.py`) to listen only on
   localhost if you are running Tango on same machine as Autolab. The Tango processes
   run with root privileges since they have to interact with Docker daemon and thus,
   exposing them outside of localhost is a security risk and best avoided if
