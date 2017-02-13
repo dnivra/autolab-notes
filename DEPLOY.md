@@ -14,6 +14,9 @@
   redis-server than the one present in Ubuntu repositories. I have not tested it on
   Ubuntu 14.04 server though.
 - These could serve as a good starting point for other OS too.
+- I tested these with Autolab commit
+  [4d9e072](https://github.com/autolab/Autolab/commit/4d9e072) and Tango commit
+  [db7ad9](https://github.com/autolab/Tango/commit/db7ad9).
 
 ## Autolab
 
