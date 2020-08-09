@@ -9,14 +9,10 @@
   decided to [expand existing Ubuntu deployment
   instructions](https://github.com/autolab/Autolab/wiki/Deploying-Autolab-on-Ubuntu)
   by adding more details.
-- These instructions were tested on Ubuntu 16.04.1 server edition. These should work
-  fine on Ubuntu 14.04 too except you might want to use a newer version of
-  redis-server than the one present in Ubuntu repositories. I have not tested it on
-  Ubuntu 14.04 server though.
+- These instructions were tested on Ubuntu 18.04.4 server edition.
 - These could serve as a good starting point for other OS too.
-- I tested these with Autolab commit
-  [4d9e072](https://github.com/autolab/Autolab/commit/4d9e072) and Tango commit
-  [db7ad9](https://github.com/autolab/Tango/commit/db7ad9).
+- I tested these with Autolab commit[7bbb791](https://github.com/autolab/Autolab/commit/7bbb791)
+  and Tango commit [5ebaceb](https://github.com/autolab/Tango/commit/5ebaceb).
 
 ## Autolab
 
@@ -25,7 +21,7 @@
 - Create /var/www and set it's owner + group to `www-data`.
 - Install packages.
 ```bash
-sudo apt-get install git mysql-server libmysqlclient-dev libsqlite3-dev
+sudo apt install git mysql-server libmysqlclient-dev libsqlite3-dev
 ```
 - Login as `www-data`.
 - Clone Autolab source
@@ -47,9 +43,10 @@ echo 'export PATH="$HOME/.rbenv/bin:$PATH"' >> ~/.bash_profile
   for temporary files. `RUBY_BUILD_BUILD_PATH` is build directory and sub-directory of
   `TMPDIR`.
 - Logout and login as `www-data`.
-- Install ruby build dependencies as sudo user.
+- Install ruby build dependencies as sudo user. Although, Autolab requires ruby 2.6, the build
+  dependencies of ruby 2.5 on Ubuntu 18.04.4 are sufficient to build ruby 2.6.
 ```bash
-sudo apt-get build-dep ruby2.3
+sudo apt build-dep ruby2.5
 ```
 - Install ruby from Autolab folder as `www-data`.
 ```bash
@@ -71,18 +68,25 @@ bundle install
 ```bash
 cp config/database.yml.template config/database.yml
 ```
-- Create unprivileged user inside MySQL by logging is as root.
+- Secure mysql by running `mysql_secure_installation` using sudo.
+- Create unprivileged user inside MySQL by running mysql using sudo.
 ```mysql
-mysql> CREATE USER app IDENTIFIED BY '[insert password]';
+mysql> CREATE USER 'app'@'localhost' IDENTIFIED BY '[insert password]';
 ```
-- Change user, password and database fields in config/database.yml. Also, create
+- Change user, password and database fields in `config/database.yml`. Also, create
   section 'production' with identical values as deployment.
+- Create and configure the institution specific settings.
+```bash
+cp config/school.yml.template config/school.yml
+```
 - Configure Devise.
 ```bash
 cp config/initializers/devise.rb.template config/initializers/devise.rb
 bundle exec rake secret
 ```
   Copy above output to secret_key in devise.rb.
+- Add `explicit_defaults_for_timestamp=1` under `[mysqld]` section in `/etc/mysql/my.cnf`. This is a
+  workaround for [this issue](https://github.com/autolab/Autolab/issues/1151).
 - Create and migrate DB after bundle has completed installing.
 ```bash
 bundle exec rake db:create
@@ -92,8 +96,10 @@ bundle exec rake db:migrate
 ```bash
 bundle exec rails s -p 3000 -b [server]
 ```
-- Install nginx with passenger support. See
-  https://www.phusionpassenger.com/library/install/nginx/install/oss/xenial/. This
+- Install package `nginx`: it seems the executable is present in this package, which isn't a
+  dependency of phusion passenger and so not automatically installed in next step.
+- Install passenger support for nginx. See
+  https://www.phusionpassenger.com/library/install/nginx/install/oss/bionic/. This
   is better because the other alternative is to compile nginx from source since nginx
   doesn't support dynamic loading of plugins.
 - Copy docker/nginx.template.conf to /etc/nginx/sites-available.
@@ -143,11 +149,13 @@ setting up exim4 as a send-only mail server for sending notifications.
 
 ## Tango
 
-- Install pip redis-server supervisor.
+- Install pip supervisor.
 ```bash
-sudo apt-get install python-pip redis-server supervisor
+sudo apt install python-pip supervisor
 ```
-- Install docker. See https://docs.docker.com/engine/installation/.
+- Install a recent version of redis. One possible source is
+  https://launchpad.net/~chris-lea/+archive/ubuntu/redis-server.
+- Install docker. See https://docs.docker.com/engine/install/ubuntu/.
 - Obtain Tango source code as `www-data`.
 ```bash
 git clone https://github.com/autolab/Tango.git; cd Tango
@@ -174,9 +182,9 @@ pip install -r requirements.txt
 ```python
 application.listen(port, address='127.0.0.1', max_buffer_size=Config.MAX_INPUT_FILE_SIZE)
 ```
-- Create the COURSELABS and DOCKER_VOLUME_PATH directories exist as `www-data`.
+- Create the COURSELABS and DOCKER_VOLUME_PATH directories as `www-data`.
 - Copy sections [program:tango] and [program:tangoJobManager] from
-  deployment/config/supervisord.conf to /etc/supervisor/conf.d/tango.conf.
+  `Tango/deployment/config/supervisord.conf` to `/etc/supervisor/conf.d/tango.conf`.
 - Modify the path to the Tango directory specified in tango.conf.
 - Change command in both sections to just the `python` commands. This ensures that
   supervisor will kill the Tango processes before restarting. Otherwise, the old
@@ -189,19 +197,20 @@ application.listen(port, address='127.0.0.1', max_buffer_size=Config.MAX_INPUT_F
 environment=PATH="/var/www/Tango/bin:%(ENV_PATH)s"
 autorestart=True
 ```
-- Somehow supervisor wasn't added to system startup. Do so using `update-rc.d`.
+- After starting the Tango service using supervisor, run following to ensure Tango is running
+  correctly. They should print out the message `Hello, world! RESTful Tango here!`
 ```bash
-sudo update-rc.d supervisor enable
+curl http://localhost:8610
+curl http://localhost:8611
 ```
-- After starting the Tango service using supervisor, navigate to [server]:8610 and
-  [server]:8611 to ensure Tango is running correctly.
-- Copy the server and upstream sections deployment/config/nginx.conf to
-  /etc/nginx/sites-available/tango.conf. Symlink this file to
-  /etc/nginx/sites-enabled/. Change the listen directive to make nginx listen for
-  connections over localhost if running on same machine as Autolab.
-- Restart nginx. Navigate to http://[server]:8600 to view Tango's message.
+- Copy the server and upstream sections of `Tango/deployment/config/nginx.conf` to
+  `/etc/nginx/sites-available/tango.conf`. Symlink this file to
+  `/etc/nginx/sites-enabled/`. Change the listen directive to make nginx listen for
+  connections over localhost(unless not running on same machine as Autolab).
+- Restart nginx. Run `curl http://localhost:8600`(or navigate to http://[server]:8600) to view
+  Tango's message.
 - Set RESTFUL_HOST, RESTFUL_PORT and RESTFUL_KEY in
-  Autolab/config/autogradeConfig.rb. Use template file provided if file doesn't
+  `Autolab/config/autogradeConfig.rb`. Use template file provided if file doesn't
   exist.
 - Restart nginx again.
 - Lock `www-data` account and unset `www-data`'s shell.
